@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data:; connect-src 'self'" />
+  <title>AI Экранный Помощник</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header id="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span class="brand-name">AI Экранный Помощник</span>
+      <span id="connStatus" class="dot off" title="API-ключ не настроен"></span>
+    </div>
+    <div class="top-actions">
+      <button id="btnAnalyze" class="tb-btn" title="Спросить, что на экране (Ctrl+Shift+S)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>Анализ экрана</span>
+      </button>
+      <button id="btnPreview" class="tb-btn" title="Показать, что видит ассистент">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>Превью</span>
+      </button>
+      <button id="btnClear" class="tb-btn icon-only" title="Очистить чат">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+      <button id="btnSettings" class="tb-btn icon-only" title="Настройки">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="layout">
+    <section id="chatPane">
+      <div id="messages"></div>
+      <div id="composer">
+        <div id="chips">
+          <button class="chip" id="chipScreen" title="Прикладывать свежий скриншот экрана к каждому сообщению">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>Видеть экран: выкл</span>
+          </button>
+          <button class="chip" id="chipTts" title="Озвучивать ответы голосом">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            <span>Озвучка: выкл</span>
+          </button>
+          <button class="chip" id="chipVoice" title="Непрерывный голосовой диалог: слушаю — отвечаю голосом — снова слушаю">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            <span>Голосовой режим: выкл</span>
+          </button>
+          <span id="sttStatus"></span>
+        </div>
+        <div id="inputRow">
+          <button id="btnMic" title="Записать голос: клик — начать, клик — закончить (Ctrl+Shift+D)">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <textarea id="input" rows="1" placeholder="Спроси что-нибудь о том, что на экране… (Enter — отправить)"></textarea>
+          <button id="btnSend" title="Отправить (Enter)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          <button id="btnStop" class="hidden" title="Остановить генерацию / озвучку">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <aside id="screenPane" class="hidden">
+      <div class="sp-head">
+        <span>Что видит ассистент</span>
+        <button id="btnRefreshScreen" title="Обновить снимок">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+      <img id="screenPreview" alt="Скриншот экрана" />
+      <div class="sp-note">Скриншот прикладывается к вопросу, когда включён чип «Видеть экран». Превью не отправляется само по себе.</div>
+    </aside>
+  </main>
+
+  <div id="modalOverlay" class="hidden">
+    <div id="settingsModal">
+      <div class="sm-head">Настройки</div>
+      <div class="sm-body">
+
+        <section>
+          <h3>Искусственный интеллект</h3>
+          <label class="f-row"><span>Провайдер</span>
+            <select id="stProvider">
+              <option value="zai">Z.ai — GLM-4.5V (рекомендую, видит экран)</option>
+              <option value="bigmodel">BigModel / GLM (Китай)</option>
+              <option value="openrouter">OpenRouter (есть бесплатные модели)</option>
+              <option value="openai">OpenAI</option>
+              <option value="custom">Свой сервер</option>
+            </select>
+          </label>
+          <label class="f-row"><span>Адрес API</span><input id="stBaseUrl" type="text" placeholder="https://api.z.ai/api/paas/v4" /></label>
+          <label class="f-row"><span>API-ключ</span><input id="stApiKey" type="password" placeholder="вставь сюда свой ключ" autocomplete="off" /></label>
+          <label class="f-row"><span>Модель</span><input id="stModel" type="text" placeholder="glm-4.5v" /></label>
+          <div class="f-hint">Где взять ключ: <a id="stKeyLink" href="#" target="_blank">страница ключей выбранного провайдера</a>. Модель должна поддерживать изображения (vision), иначе ассистент не сможет видеть экран.</div>
+          <div class="f-row-inline">
+            <button id="btnTest" class="btn ghost">Проверить подключение</button>
+            <span id="testResult"></span>
+          </div>
+        </section>
+
+        <section>
+          <h3>Голос помощника</h3>
+          <div class="f-row-inline voices">
+            <label class="radio"><input type="radio" name="stVoice" id="stVoiceMale" value="ru-RU-DmitryNeural" /><span>Мужской (Дмитрий)</span></label>
+            <label class="radio"><input type="radio" name="stVoice" id="stVoiceFemale" value="ru-RU-SvetlanaNeural" /><span>Женский (Светлана)</span></label>
+          </div>
+          <label class="f-row"><span>Скорость речи: <b id="stRateVal">+0%</b></span><input id="stRate" type="range" min="-30" max="30" step="5" value="0" /></label>
+          <label class="f-check"><input type="checkbox" id="stTtsEnabled" /><span>Озвучивать ответы голосом</span></label>
+          <div class="f-hint">Голоса — нейронные (Microsoft Edge), звучат как живые люди. Работает сразу, без ключей.</div>
+        </section>
+
+        <section>
+          <h3>Экран</h3>
+          <label class="f-check"><input type="checkbox" id="stAttach" /><span>Прикладывать скриншот к каждому сообщению (ассистент «видит» экран)</span></label>
+        </section>
+
+        <section>
+          <h3>Распознавание твоей речи (локальное)</h3>
+          <label class="f-row"><span>Модель Whisper</span>
+            <select id="stSttModel">
+              <option value="tiny">tiny — быстро, но грубее</option>
+              <option value="base">base — рекомендуется</option>
+              <option value="small">small — точнее, тяжелее (~250 МБ)</option>
+            </select>
+          </label>
+          <label class="f-check"><input type="checkbox" id="stHfMirror" /><span>Скачивать модель через зеркало (если не скачивается с Hugging Face)</span></label>
+          <div class="f-hint">При первом голосовом сообщении модель скачивается один раз и дальше работает офлайн. Запись голоса никуда не отправляется — распознавание идёт прямо на твоём ПК.</div>
+        </section>
+
+      </div>
+      <div class="sm-foot">
+        <button id="btnSettingsCancel" class="btn ghost">Отмена</button>
+        <button id="btnSettingsSave" class="btn primary">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

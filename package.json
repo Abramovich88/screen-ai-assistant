@@ -1,0 +1,20 @@
+{
+  "name": "screen-ai-assistant",
+  "version": "1.0.0",
+  "description": "AI-assistant dlya Windows: vidit ekran, ponimaet russkuyu rech i otvechaet golosom",
+  "main": "main.js",
+  "author": "Abramovich88",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win --publish never"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.0.0",
+    "msedge-tts": "^2.0.8"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}

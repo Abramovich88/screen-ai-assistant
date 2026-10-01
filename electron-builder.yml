@@ -1,0 +1,38 @@
+appId: ru.abramovich88.screenai
+productName: ScreenAIAssistant
+copyright: Copyright (c) 2026 Abramovich88
+
+directories:
+  output: dist
+
+asar: true
+npmRebuild: false
+compression: normal
+
+asarUnpack:
+  - "**/*.node"
+  - "node_modules/onnxruntime-node/**"
+
+win:
+  icon: build/icon.ico
+  requestExecutionLevel: user
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "AI Pomoshnik (ekran)"
+  artifactName: "${productName}-Setup-${version}.${ext}"
+  deleteAppDataOnUninstall: false
+
+portable:
+  artifactName: "${productName}-Portable-${version}.${ext}"
