@@ -15,7 +15,7 @@ asarUnpack:
 
 win:
   icon: build/icon.ico
-  requestedExecutionLevel: user
+  requestedExecutionLevel: asInvoker
   target:
     - target: nsis
       arch:
