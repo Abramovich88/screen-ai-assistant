@@ -1,6 +1,6 @@
 {
   "name": "screen-ai-assistant",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AI-assistant dlya Windows: vidit ekran, ponimaet russkuyu rech i otvechaet golosom",
   "main": "main.js",
   "author": "Abramovich88",

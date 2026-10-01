@@ -82,6 +82,17 @@ function createWindow () {
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.once('ready-to-show', () => { if (win) win.show(); });
+
+  // Логируем ошибки интерфейса, чтобы их можно было увидеть в консоли/логах
+  try {
+    win.webContents.on('console-message', (e, level, message) => {
+      const msg = (e && typeof e === 'object' && e.message !== undefined) ? e.message : message;
+      if (msg) console.log('[renderer]', msg);
+    });
+    win.webContents.on('render-process-gone', (_e, details) => {
+      console.error('[renderer gone]', details && details.reason);
+    });
+  } catch (_) {}
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url && url.startsWith('http')) shell.openExternal(url);
     return { action: 'deny' };

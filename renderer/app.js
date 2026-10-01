@@ -2,6 +2,30 @@
 
 'use strict';
 
+/* Аварийный баннер: любая ошибка JS видна пользователю красной плашкой,
+   а не «мёртвым» окном. Должен объявляться раньше всего остального. */
+function showFatal (title, detail) {
+  try {
+    var b = document.getElementById('fatalBanner');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'fatalBanner';
+      b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;background:#3a1020;color:#ffd7de;border:1px solid #ff5b6e;border-radius:10px;padding:10px 14px;font:13px/1.5 "Segoe UI",sans-serif;max-height:40vh;overflow:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+      (document.body || document.documentElement).appendChild(b);
+    }
+    b.textContent = (title ? title + ' — ' : '') + detail;
+  } catch (_) {}
+}
+window.onerror = function (msg, src, line) {
+  var file = String(src || '').split('/').pop();
+  showFatal('Ошибка интерфейса', msg + ' (' + file + ':' + line + ')');
+  return false;
+};
+window.addEventListener('unhandledrejection', function (e) {
+  var r = e && e.reason;
+  showFatal('Ошибка', String((r && r.message) || r || 'неизвестная ошибка'));
+});
+
 var $ = function (id) { return document.getElementById(id); };
 
 var SYSTEM_PROMPT = [
@@ -38,7 +62,7 @@ var S = {
   voiceMode: false
 };
 
-var history = [];
+var chatLog = [];
 var streaming = false;
 var streamText = '';
 var streamThink = '';
@@ -111,14 +135,14 @@ function scrollBottom () {
 }
 
 function saveHistory () {
-  try { localStorage.setItem('sai_history', JSON.stringify(history.slice(-40))); } catch (e) {}
+  try { localStorage.setItem('sai_history', JSON.stringify(chatLog.slice(-40))); } catch (e) {}
 }
 
 function loadHistory () {
   try {
     var raw = localStorage.getItem('sai_history');
-    if (raw) history = JSON.parse(raw) || [];
-  } catch (e) { history = []; }
+    if (raw) chatLog = JSON.parse(raw) || [];
+  } catch (e) { chatLog = []; }
 }
 
 /* ------------------------------ рендер сообщений ------------------------------ */
@@ -229,7 +253,7 @@ function finalizeAssistant (text, isError, stopped) {
     return;
   }
   var t = (text || '').trim() || (stopped ? '(остановлено)' : '(пустой ответ)');
-  history.push({ role: 'assistant', content: t });
+  chatLog.push({ role: 'assistant', content: t });
   saveHistory();
   renderAiOnly(t);
   if (!stopped && S.ttsEnabled) {
@@ -248,7 +272,7 @@ function setStreamUI (on) {
 
 function buildApiMessages (imgB64) {
   var msgs = [{ role: 'system', content: SYSTEM_PROMPT }];
-  var h = history.slice(-14);
+  var h = chatLog.slice(-14);
   for (var i = 0; i < h.length; i++) {
     var m = h[i];
     var isLast = (i === h.length - 1);
@@ -280,7 +304,7 @@ function sendMessage (text, opts) {
   var needsShot = typeof opts.attach === 'boolean' ? opts.attach : S.attachScreenshot;
 
   var doSend = function () {
-    history.push({ role: 'user', content: text, hadImg: !!imgB64 });
+    chatLog.push({ role: 'user', content: text, hadImg: !!imgB64 });
     saveHistory();
     renderUser(text, !!imgB64);
     $('input').value = '';
@@ -617,7 +641,7 @@ function autoGrow () {
 }
 
 function clearChat () {
-  history = [];
+  chatLog = [];
   saveHistory();
   $('messages').innerHTML = '';
   addWelcome();
@@ -723,14 +747,18 @@ function bindUI () {
 /* ------------------------------ инициализация ------------------------------ */
 
 function init () {
+  if (!window.api) {
+    showFatal('Системный мост не запустился', 'window.api отсутствует — preload-скрипт не загрузился. Напиши разработчику, приложи скриншот.');
+    return;
+  }
   bindUI();
   window.api.getSettings().then(function (s) {
     S = s;
     loadHistory();
     applyChips();
-    if (history.length) {
-      for (var i = 0; i < history.length; i++) {
-        var m = history[i];
+    if (chatLog.length) {
+      for (var i = 0; i < chatLog.length; i++) {
+        var m = chatLog[i];
         if (m.role === 'user') renderUser(m.content, m.hadImg);
         else renderAiOnly(m.content);
       }
@@ -739,6 +767,9 @@ function init () {
       addWelcome();
     }
     if (!S.apiKey) openSettings();
+    console.log('[ui] init ok: настройки загружены, чат готов');
+  }).catch(function (e) {
+    showFatal('Не удалось загрузить настройки', String((e && e.message) || e));
   });
 }
 
